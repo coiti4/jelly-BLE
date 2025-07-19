@@ -1,0 +1,23 @@
+#include "ble_common.h"
+#include "ble_callbacks.h"
+#include "led.h"
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(jelly_coordinator_main, LOG_LEVEL_INF);
+
+int main(void)
+{
+	LOG_INF("Starting Jelly BLE Coordinator");
+
+	if (led_init()) {
+        return -1;
+    }
+
+    register_connection_callbacks();
+
+	ble_init_and_start_advertising();
+
+	led_blink_loop(1000);
+
+    return 0;
+}
