@@ -1,5 +1,6 @@
 #include "ble_common.h"
 #include "ble_callbacks.h"
+#include "button.h"
 #include "led.h"
 #include <zephyr/logging/log.h>
 
@@ -10,6 +11,10 @@ int main(void)
 	LOG_INF("Starting Jelly BLE Coordinator");
 
 	if (led_init()) {
+        return -1;
+    }
+
+    if (init_button()) {
         return -1;
     }
 

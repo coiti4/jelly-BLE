@@ -4,7 +4,7 @@
 #include "led.h"
 #include "ble_common.h"
 
-LOG_MODULE_REGISTER(BLE_Callbacks);
+LOG_MODULE_REGISTER(ble_callbacks);
 
 struct bt_conn *my_conn = NULL;
 

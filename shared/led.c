@@ -8,12 +8,11 @@ LOG_MODULE_REGISTER(led, LOG_LEVEL_INF);
 int led_init(void)
 {
 	int err = dk_leds_init();
-	if (!err) {
-		return 0;
-	} else {
+	if (err) {
 		LOG_ERR("LEDs init failed (err %d)", err);
 		return -1;
 	}
+	return 0;
 }
 
 void led_blink_loop(int interval_ms)
