@@ -3,8 +3,9 @@
 #include <dk_buttons_and_leds.h>
 #include "led.h"
 #include "ble_common.h"
+#include "ble_callbacks.h"
 
-LOG_MODULE_REGISTER(ble_callbacks);
+LOG_MODULE_REGISTER(ble_callbacks, LOG_LEVEL_INF);
 
 struct bt_conn *my_conn = NULL;
 
@@ -47,9 +48,9 @@ static void on_le_param_updated(struct bt_conn *conn, uint16_t interval,
 	LOG_INF("Connection parameters updated: interval %.2f ms, latency %d intervals, timeout %d ms", connection_interval, latency, supervision_timeout);
 }
 
-void on_recycled(void)
+static void on_recycled(void)
 {
-	advertising_start();
+	ble_advertising_start();
 }
 
 /* static void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param) {
@@ -71,7 +72,7 @@ void register_connection_callbacks(void) {
         .le_data_len_updated = on_le_data_len_updated, */
     };
 
-    int err = bt_conn_cb_register(&connection_callbacks);
+    int err = bt_conn_cb_register(&connection_callbacks); // REVISAR cambiar a macro
     if (err) {
         LOG_ERR("Connection callback register failed (err %d)", err);
     }

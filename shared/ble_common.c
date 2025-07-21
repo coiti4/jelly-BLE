@@ -37,22 +37,25 @@ static void adv_work_handler(struct k_work *work)
 	LOG_INF("Advertising successfully started");
 }
 
-void advertising_start(void)
+void ble_advertising_init(void)
+{	
+	k_work_init(&adv_work, adv_work_handler);
+	
+}
+
+/* Before calling this function you must have defined the callbacks*/
+void ble_advertising_start(void)
 {
 	k_work_submit(&adv_work);
 }
 
-/* Before calling this function you must have defined the callbacks*/
-void ble_init_and_start_advertising(void)
+void ble_init(void)
 {
 	int err = bt_enable(NULL);
 	if (err) {
 		LOG_ERR("Bluetooth init failed (err %d)", err);
 		return;
-	}
-
-	LOG_INF("Bluetooth initialized");
-
-	k_work_init(&adv_work, adv_work_handler);
-	advertising_start();
+	} else {
+		LOG_INF("Bluetooth initialized");
+	}	
 }

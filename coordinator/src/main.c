@@ -11,16 +11,21 @@ int main(void)
 	LOG_INF("Starting Jelly BLE Coordinator");
 
 	if (led_init()) {
+        LOG_ERR("Failed to initiate the LED module.");
         return -1;
     }
 
     if (init_button()) {
+        LOG_ERR("Failed to initiate the BUTTON module.");
         return -1;
     }
 
     register_connection_callbacks();
 
-	ble_init_and_start_advertising();
+	//ble_init_and_start_advertising();
+    ble_init();
+    ble_advertising_init();
+    ble_advertising_start();
 
 	led_blink_loop(1000);
 
