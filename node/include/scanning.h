@@ -1,5 +1,5 @@
 #pragma once
-
+#include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/bluetooth.h>
 
 /* Initialize and satart scanning for the coordinator */

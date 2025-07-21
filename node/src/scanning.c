@@ -63,17 +63,19 @@ int start_scanning(void)
     /* Register scanning callbacks */
     bt_scan_cb_register(&scan_cb);
 
-    /* Enable name filter */
-    err = bt_scan_filter_enable(BT_SCAN_FILTER_TYPE_NAME, false);
+    bt_scan_filter_remove_all();
+
+    /* Add filter for parent name */
+    err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_NAME, "Jelly BLE Coordinator");
     if (err) {
-        LOG_ERR("Failed to enable filter (err %d)", err);
+        LOG_ERR("Failed to add name filter (err %d)", err);
         return err;
     }
 
-    /* Add filter for parent name */
-    err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_NAME, "Jelly BLE Coordinator"); // REVISAR esta lógica no permite tener tentáculos
+    /* Enable name filter */
+    err = bt_scan_filter_enable(BT_SCAN_NAME_FILTER, false);
     if (err) {
-        LOG_ERR("Failed to add name filter (err %d)", err);
+        LOG_ERR("Failed to enable filter (err %d)", err);
         return err;
     }
 
