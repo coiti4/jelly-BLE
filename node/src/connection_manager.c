@@ -27,7 +27,7 @@ void set_parent_conn(struct bt_conn *conn)
         bt_conn_unref(parent_conn);
     }
     parent_conn = conn ? bt_conn_ref(conn) : NULL;
-    LOG_INF("Parent connection set to %p", parent_conn);
+    LOG_INF("Parent connection set");
 }
 
 /* Set child connection */
@@ -37,5 +37,5 @@ void set_child_conn(struct bt_conn *conn)
         bt_conn_unref(child_conn);
     }
     child_conn = conn ? bt_conn_ref(conn) : NULL;
-    LOG_INF("Child connection set to %p", child_conn);
+    LOG_INF("Child connection set");
 }

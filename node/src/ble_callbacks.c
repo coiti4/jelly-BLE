@@ -3,26 +3,27 @@
 #include <dk_buttons_and_leds.h>
 #include "led.h"
 #include "ble_common.h"
+#include "scanning.h"
 #include "connection_manager.h"
+#include "ble_callbacks.h"
 
 LOG_MODULE_REGISTER(ble_callbacks, LOG_LEVEL_INF);
 
 static void on_connected(struct bt_conn *conn, uint8_t err) {
     if (err) {
 		LOG_ERR("Connection error %d", err);
-        if (conn == my_comm) {
-            bt_conn_unref(parent_conn);
-            parent_conn = NULL;
+        if (conn == get_parent_conn()) {
+            set_parent_conn(NULL);
         }
         /* Restart scanning */
         start_scanning();
 		return;
 	}
-    if (conn == parent_conn) {
-        parent_conn = bt_conn_ref(conn);
+    if (conn == get_parent_conn()) {
+        set_parent_conn(conn);
         LOG_INF("Connected to parent");
     } else {
-        LOG_WRN("Unknown connection %p connected", conn);
+        LOG_ERR("New unknown connection");
     }
 
     /* struct bt_conn_info info;
@@ -38,14 +39,13 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
     LOG_INF("Disconnected. Reason %d", reason);
-    if (conn == parent_conn) {
-        bt_conn_unref(parent_conn);
-        parent_conn = NULL;
-        LOG_INF("parent disconnected");
+    if (conn == get_parent_conn()) {
+        set_parent_conn(NULL);
+        LOG_INF("Parent disconnected");
         /* Restart scanning */
         start_scanning();
     } else {
-        LOG_WRN("Disconnected unknown connection %p", conn);
+        LOG_ERR("Disconnected unknown connection");
     }
 }
 

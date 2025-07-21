@@ -3,10 +3,11 @@
 #include <zephyr/logging/log.h>
 #include "ble_common.h"
 #include "scanning.h"
+#include "led.h"
 
-LOG_MODULE_REGISTER(node_main, LOG_LEVEL_INFO);
+LOG_MODULE_REGISTER(node_main, LOG_LEVEL_INF);
 
-void main(void)
+int main(void)
 {
     LOG_INF("Starting Jelly BLE Node");
 
