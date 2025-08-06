@@ -26,11 +26,11 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 		LOG_ERR("Connection error %d", err);
 		return;
 	}
-	LOG_INF("Connected");
-	dk_set_led(CONNECTION_STATUS_LED, 1);
 
 	if (active_connections < MAX_CONN) {
         conns[active_connections++] = bt_conn_ref(conn);  // guardar referencia
+        LOG_INF("Connected");
+	    dk_set_led(active_connections, 1);
     } else {
         LOG_WRN("Too many connections already established!");
     }
@@ -57,14 +57,13 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
     LOG_INF("Disconnected. Reason %d", reason);
-	dk_set_led(CONNECTION_STATUS_LED, 0);
 
 	// Search and delete the connection
     for (int i = 0; i < MAX_CONN; i++) {
         if (conns[i] == conn) {
             bt_conn_unref(conns[i]);
             conns[i] = NULL;
-            active_connections--;
+            dk_set_led(active_connections--, 0);
             break;
         }
     }
@@ -79,7 +78,6 @@ static void on_le_param_updated(struct bt_conn *conn, uint16_t interval,
 
 static void on_recycled(void)
 {
-	LOG_INF("on_recycled");
 	restart_advertising_if_needed();
 }
 
