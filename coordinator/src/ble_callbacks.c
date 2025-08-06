@@ -47,8 +47,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 	uint16_t supervision_timeout = info.le.timeout*10; // in ms
 	LOG_INF("Connection parameters: interval %.2f ms, latency %d intervals, timeout %d ms", connection_interval, info.le.latency, supervision_timeout);
 
-	restart_advertising_if_needed();
-
+    restart_advertising_if_needed();
 	//ble_advertising_start();
 	/* update_phy(my_conn);
 	k_sleep(K_MSEC(1000)); // Delay added to avoid link layer collisions.
