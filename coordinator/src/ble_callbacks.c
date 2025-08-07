@@ -64,6 +64,9 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
             bt_conn_unref(conns[i]);
             conns[i] = NULL;
             dk_set_led(active_connections--, 0);
+            if (active_connections == MAX_CONN - 1) {
+                restart_advertising_if_needed();
+            }
             break;
         }
     }
@@ -78,7 +81,7 @@ static void on_le_param_updated(struct bt_conn *conn, uint16_t interval,
 
 static void on_recycled(void)
 {
-	restart_advertising_if_needed();
+	//restart_advertising_if_needed();
 }
 
 /* static void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param) {

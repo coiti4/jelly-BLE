@@ -29,7 +29,13 @@ static const struct bt_data sd[] = {
 
 static void adv_work_handler(struct k_work *work)
 {
-	int err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+	// stop advertising if already started
+	int err = bt_le_adv_stop();
+	if (err == -EALREADY) {
+		return;
+	}
+
+	err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 	if (err) {
 		LOG_ERR("Advertising failed to start (err %d)", err);
 		return;
