@@ -4,6 +4,7 @@
 #include "ble_common.h"
 #include "scanning.h"
 #include "led.h"
+#include "ble_callbacks.h"
 
 LOG_MODULE_REGISTER(node_main, LOG_LEVEL_INF);
 
@@ -16,10 +17,16 @@ int main(void)
         return -1;
     }
 
+    register_connection_callbacks();
+
     ble_init();
 
     LOG_INF("Starting node scanning...");
     start_scanning();
+
+    LOG_INF("Starting advertising...");
+    ble_advertising_init();
+    ble_advertising_start();
 
     led_blink_loop(1000);
 

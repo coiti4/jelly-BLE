@@ -32,7 +32,7 @@ static void scan_connecting_error(struct bt_scan_device_info *device_info)
 {
     LOG_ERR("Connection failed");
     /* Restart scanning */
-    bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
+    bt_scan_start(BT_SCAN_TYPE_SCAN_PASSIVE);
 }
 
 /* Callback for ongoing connection */
@@ -80,7 +80,7 @@ int start_scanning(void)
     }
 
     /* Start scanning */
-    err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
+    err = bt_scan_start(BT_SCAN_TYPE_SCAN_PASSIVE);
     if (err) {
         LOG_ERR("Failed to start scanning (err %d)", err);
         return err;

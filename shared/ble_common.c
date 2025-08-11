@@ -46,7 +46,6 @@ static void adv_work_handler(struct k_work *work)
 void ble_advertising_init(void)
 {	
 	k_work_init(&adv_work, adv_work_handler);
-	
 }
 
 /* Before calling this function you must have defined the callbacks*/
