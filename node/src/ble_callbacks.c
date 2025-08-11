@@ -21,6 +21,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 	}
     if (conn != get_parent_conn()) {
         set_child_conn(conn);
+        dk_set_led(CONNECTED_LED, 1);
     }
     /* Stop advertising once connected */
 }
@@ -34,6 +35,7 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
         start_scanning();
     } else if (conn == get_child_conn()) {
         set_child_conn(NULL);
+        dk_set_led(CONNECTED_LED, 0);
         LOG_INF("Child disconnected");
         /* Restart advertising */
         ble_advertising_start();

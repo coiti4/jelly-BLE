@@ -28,7 +28,7 @@ int main(void)
     ble_advertising_init();
     ble_advertising_start();
 
-    led_blink_loop(1000);
+    //led_blink_loop(1000);
 
     return 0;
 }

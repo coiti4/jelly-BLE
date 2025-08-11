@@ -15,8 +15,14 @@ static void scan_filter_match(struct bt_scan_device_info *device_info,
         char addr_str[BT_ADDR_LE_STR_LEN];
         bt_addr_le_to_str(device_info->recv_info->addr, addr_str, sizeof(addr_str));
 
-        LOG_INF("Coordinator found: %s (name: %s)", addr_str, filter_match->name.name);
         /* Connection is established automatically if connect_if_match is enabled */
+        if (strcmp(filter_match->name.name, "Jelly BLE Coordinator") == 0) {
+            LOG_INF("Coordinator found: %s (name: %s)", addr_str, filter_match->name.name);
+        } else if (strcmp(filter_match->name.name, "Jelly BLE Node") == 0) {
+            LOG_INF("Node found: %s (name: %s)", addr_str, filter_match->name.name);
+        } else {
+            LOG_WRN("Unknown device found: %s (name: %s)", addr_str, filter_match->name.name);
+        }
     }
 }
 
@@ -24,7 +30,7 @@ static void scan_filter_match(struct bt_scan_device_info *device_info,
 static void scan_filter_no_match(struct bt_scan_device_info *device_info,
                                 bool connectable)
 {
-    /* Handle directed advertising */
+
 }
 
 /* Callback for connection errors */
@@ -38,9 +44,7 @@ static void scan_connecting_error(struct bt_scan_device_info *device_info)
 /* Callback for ongoing connection */
 static void scan_connecting(struct bt_scan_device_info *device_info, struct bt_conn *conn)
 {
-    LOG_INF("Connecting to coordinator...");
-    /* Update coordinator connection */
-    set_parent_conn(conn);
+    set_parent_conn(conn); 
 }
 
 /* Scanning callback structure */
@@ -72,6 +76,13 @@ int start_scanning(void)
         return err;
     }
 
+    /* Add filter for node name */
+    err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_NAME, "Jelly BLE Node");
+    if (err) {
+        LOG_ERR("Failed to add name filter (err %d)", err);
+        return err;
+    }
+
     /* Enable name filter */
     err = bt_scan_filter_enable(BT_SCAN_NAME_FILTER, false);
     if (err) {
@@ -86,7 +97,7 @@ int start_scanning(void)
         return err;
     }
 
-    LOG_INF("Scanning started");
+    LOG_INF("Coordinator scanning started");
     return 0;
 }
 
