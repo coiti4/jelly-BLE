@@ -1,3 +1,10 @@
+/*
+ * MIT License 2025
+ * Author: Agustín Coitinho
+ * Jelly BLE is a project developed within the course
+ * "Tecnologías para la Internet de las Cosas"
+ * Facultad de Ingeniería - Universidad de la República, Uruguay
+ */
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/logging/log.h>
 #include <bluetooth/scan.h>
@@ -5,6 +12,8 @@
 #include "connection_manager.h"
 
 LOG_MODULE_REGISTER(scanning, LOG_LEVEL_INF);
+
+static uint8_t matchs_nb = 0;
 
 /* Callback for filter match */
 static void scan_filter_match(struct bt_scan_device_info *device_info,
@@ -17,9 +26,17 @@ static void scan_filter_match(struct bt_scan_device_info *device_info,
 
         /* Connection is established automatically if connect_if_match is enabled */
         if (strcmp(filter_match->name.name, "Jelly BLE Coordinator") == 0) {
+            matchs_nb = 0;
             LOG_INF("Coordinator found: %s (name: %s)", addr_str, filter_match->name.name);
+            connect_to_device(device_info->recv_info->addr, device_info->conn_param); 
         } else if (strcmp(filter_match->name.name, "Jelly BLE Node") == 0) {
+            matchs_nb++;
             LOG_INF("Node found: %s (name: %s)", addr_str, filter_match->name.name);
+            if (matchs_nb == COORDINATOR_RETRY_TIMES) {
+                // connect to device
+                matchs_nb = 0;
+                connect_to_device(device_info->recv_info->addr, device_info->conn_param); 
+            }
         } else {
             LOG_WRN("Unknown device found: %s (name: %s)", addr_str, filter_match->name.name);
         }
@@ -59,7 +76,7 @@ int start_scanning(void)
     /* Initialize scanning module */
     struct bt_scan_init_param scan_init = {
         .scan_param = NULL, /* Use default parameters */
-        .connect_if_match = true, /* Connect automatically on filter match */
+        .connect_if_match = false, /* Do not connect automatically on filter match */
         .conn_param = BT_LE_CONN_PARAM_DEFAULT,
     };
     bt_scan_init(&scan_init);
@@ -104,7 +121,7 @@ int start_scanning(void)
 void connect_to_device(const bt_addr_le_t *addr, const struct bt_le_conn_param *conn_param)
 {
     int err;
-    struct bt_conn *conn;
+    struct bt_conn *conn = NULL;
 
     err = bt_conn_le_create(addr, BT_CONN_LE_CREATE_CONN, conn_param, &conn);
     if (err) {

@@ -1,3 +1,10 @@
+/*
+ * MIT License 2025
+ * Author: Agustín Coitinho
+ * Jelly BLE is a project developed within the course
+ * "Tecnologías para la Internet de las Cosas"
+ * Facultad de Ingeniería - Universidad de la República, Uruguay
+ */
 #include "led.h"
 #include <zephyr/kernel.h>
 #include <dk_buttons_and_leds.h>

@@ -1,6 +1,15 @@
+/*
+ * MIT License 2025
+ * Author: Agustín Coitinho
+ * Jelly BLE is a project developed within the course
+ * "Tecnologías para la Internet de las Cosas"
+ * Facultad de Ingeniería - Universidad de la República, Uruguay
+ */
 #pragma once
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/bluetooth.h>
+
+#define COORDINATOR_RETRY_TIMES 15
 
 /* Initialize and satart scanning for the coordinator */
 int start_scanning(void);
