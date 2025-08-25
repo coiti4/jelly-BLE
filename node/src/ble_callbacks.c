@@ -34,12 +34,16 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
+    int err;
     LOG_INF("Disconnected. Reason %d", reason);
     if (conn == get_parent_conn()) {
-        set_parent_conn(NULL);
         LOG_INF("Parent disconnected");
+        set_parent_conn(NULL);
         /* Restart scanning */
-        start_scanning();
+        err = start_scanning();
+        if (err) {
+            LOG_ERR("Failed to restart scanning (err %d)", err);
+        }
     } else if (conn == get_child_conn()) {
         set_child_conn(NULL);
         dk_set_led(CONNECTED_LED, 0);
@@ -63,7 +67,8 @@ void on_recycled(void)
 	//ble_advertising_start();
 }
 
-void register_connection_callbacks(void) {
+void register_peripheral_connection_callbacks(void)
+{
     static struct bt_conn_cb connection_callbacks = {
         .connected = on_connected,
         .disconnected = on_disconnected,

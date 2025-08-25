@@ -16,8 +16,8 @@ LOG_MODULE_REGISTER(ble_common, LOG_LEVEL_INF);
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
-static struct k_work adv_work;
 
+static struct k_work adv_work;
 static const struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
 	BT_LE_ADV_OPT_CONN,
 	800, /* Min Advertising Interval 500ms (800*0.625ms) */

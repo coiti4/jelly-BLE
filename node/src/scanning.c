@@ -58,7 +58,7 @@ static void scan_connecting_error(struct bt_scan_device_info *device_info)
     bt_scan_start(BT_SCAN_TYPE_SCAN_PASSIVE);
 }
 
-/* Callback for ongoing connection */
+/* Callback for ongoing connection, only for connect_if_match == true */
 static void scan_connecting(struct bt_scan_device_info *device_info, struct bt_conn *conn)
 {
     set_parent_conn(conn); 
@@ -67,6 +67,11 @@ static void scan_connecting(struct bt_scan_device_info *device_info, struct bt_c
 /* Scanning callback structure */
 BT_SCAN_CB_INIT(scan_cb, scan_filter_match, scan_filter_no_match, 
     scan_connecting_error, scan_connecting);
+
+void register_central_connection_callbacks(void)
+{
+    bt_scan_cb_register(&scan_cb); // it must be called only once!
+}
 
 /* Initialize and start scanning for the parent */
 int start_scanning(void)
@@ -80,9 +85,6 @@ int start_scanning(void)
         .conn_param = BT_LE_CONN_PARAM_DEFAULT,
     };
     bt_scan_init(&scan_init);
-
-    /* Register scanning callbacks */
-    bt_scan_cb_register(&scan_cb);
 
     bt_scan_filter_remove_all();
 
@@ -123,6 +125,7 @@ void connect_to_device(const bt_addr_le_t *addr, const struct bt_le_conn_param *
     int err;
     struct bt_conn *conn = NULL;
 
+    bt_scan_stop();
     err = bt_conn_le_create(addr, BT_CONN_LE_CREATE_CONN, conn_param, &conn);
     if (err) {
         LOG_ERR("Failed to create connection (err %d)", err);

@@ -9,4 +9,4 @@
 
 #define CONNECTED_LED RUN_STATUS_LED
 
-void register_connection_callbacks(void);
+void register_peripheral_connection_callbacks(void);

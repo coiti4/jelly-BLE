@@ -24,10 +24,11 @@ int main(void)
         return -1;
     }
 
-    register_connection_callbacks();
+    register_peripheral_connection_callbacks();
 
     ble_init();
 
+    register_central_connection_callbacks();
     LOG_INF("Starting node scanning...");
     start_scanning();
 

@@ -11,7 +11,9 @@
 
 #define COORDINATOR_RETRY_TIMES 15
 
-/* Initialize and satart scanning for the coordinator */
+void register_central_connection_callbacks(void);
+
+/* Initialize and start scanning for the coordinator */
 int start_scanning(void);
 
 /* Connect to the detected device */
