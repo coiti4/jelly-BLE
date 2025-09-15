@@ -33,7 +33,7 @@ static void scan_filter_match(struct bt_scan_device_info *device_info,
             matchs_nb++;
             LOG_INF("Node found: %s (name: %s)", addr_str, filter_match->name.name);
             if (matchs_nb == COORDINATOR_RETRY_TIMES) {
-                // connect to device
+                // IMPROVEMENT: choose the shortest+ path to the coordinator
                 matchs_nb = 0;
                 connect_to_device(device_info->recv_info->addr, device_info->conn_param); 
             }
