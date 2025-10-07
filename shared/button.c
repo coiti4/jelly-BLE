@@ -7,16 +7,16 @@
  */
 #include "button.h"
 #include <zephyr/logging/log.h>
-#include <bluetooth/services/lbs.h>
+//#include <bluetooth/services/lbs.h>
 #include <dk_buttons_and_leds.h>
 
 LOG_MODULE_REGISTER(button, LOG_LEVEL_INF);
 
-int init_button(void)
+int init_button(button_handler_t button_handler)
 {
 	int err;
 
-	err = dk_buttons_init(button_changed);
+	err = dk_buttons_init(button_handler);
 	if (err) {
 		LOG_ERR("Cannot init buttons (err: %d)", err);
 	}
@@ -24,7 +24,7 @@ int init_button(void)
 	return err;
 }
 
-void button_changed(uint32_t button_state, uint32_t has_changed)
+/* void button_changed(uint32_t button_state, uint32_t has_changed)
 {
 	int err;
 	bool user_button_changed = (has_changed & USER_BUTTON) ? true : false;
@@ -37,4 +37,4 @@ void button_changed(uint32_t button_state, uint32_t has_changed)
 			LOG_ERR("Couldn't send notification. (err: %d)", err);
 		}
 	}
-}
+} */
