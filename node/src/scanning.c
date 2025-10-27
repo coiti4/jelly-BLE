@@ -68,24 +68,24 @@ static void scan_filter_match(struct bt_scan_device_info *device_info,
                 // IMPROVEMENT: choose the shortest+ path to the coordinator
                 matchs_nb = 0;
                 connect_to_device(device_info->recv_info->addr, device_info->conn_param);
-                
-                /* Subscribe to RTT characteristic */
-                struct bt_gatt_subscribe_params subscribe_params;
-
-                subscribe_params.notify = notify_func;
-		        subscribe_params.value = BT_GATT_CCC_NOTIFY;
-                subscribe_params.value_handle = get_jrs_value_handle();
-		        subscribe_params.ccc_handle = get_jrs_ccc_handle();
-
-                int err = bt_gatt_subscribe(get_parent_conn(), &subscribe_params);
-                if (err && err != -EALREADY) {
-                    printk("Subscribe failed (err %d)\n", err);
-                } else {
-                    printk("[SUBSCRIBED]\n");
-                }
             }
         } else {
             LOG_WRN("Unknown device found: %s (name: %s)", addr_str, filter_match->name.name);
+            return;
+        }
+        /* Subscribe to RTT characteristic */
+        struct bt_gatt_subscribe_params subscribe_params;
+
+        subscribe_params.notify = notify_func;
+        subscribe_params.value = BT_GATT_CCC_NOTIFY;
+        subscribe_params.value_handle = get_jrs_value_handle();
+        subscribe_params.ccc_handle = get_jrs_ccc_handle();
+
+        int err = bt_gatt_subscribe(get_parent_conn(), &subscribe_params);
+        if (err && err != -EALREADY) {
+            LOG_INF("Subscribe failed (err %d)\n", err);
+        } else {
+            LOG_INF("[SUBSCRIBED]\n");
         }
     }
 }

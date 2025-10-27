@@ -24,7 +24,7 @@ static ssize_t write_pkt(struct bt_conn *conn,
                          const void *buf, uint16_t len,
                          uint16_t offset, uint8_t flags)
 {
-    LOG_DBG("Attribute write, handle: %u, conn: %p", attr->handle, (void *)conn);
+    LOG_INF("Attribute write, handle: %u, conn: %p", attr->handle, (void *)conn);
     if (len != sizeof(jrs_pkt_t)) {
         LOG_WRN("Invalid packet size %d (expected %d)", len, sizeof(jrs_pkt_t));
         return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);

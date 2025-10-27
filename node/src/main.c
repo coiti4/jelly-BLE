@@ -40,7 +40,7 @@ static void node_rx_cb(struct bt_conn *conn, const jrs_pkt_t *pkt)
 /* Button handler: called by the node that starts packet transfer */
 static void button_handler(uint32_t button_state, uint32_t has_changed)
 {
-    if (has_changed & USER_BUTTON) {
+    if (has_changed & USER_BUTTON && !(button_state & USER_BUTTON)) {
         // Store timestamp
         if (rtt_store_timestamp()) {
             LOG_ERR("Failed to store timestamp");
