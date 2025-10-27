@@ -10,7 +10,7 @@
 
 *Facultad de Ingeniería - Universidad de la República, Uruguay*
 
-[Features](#features) • [Architecture](#architecture) • [Getting Started](#getting-started) • [Documentation](#documentation) • [Contributing](#contributing)
+[Features](#features) • [Architecture](#architecture) • [Documentation](#documentation)
 
 </div>
 
