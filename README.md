@@ -1,8 +1,6 @@
 # jelly-BLE
 Repository of the IoT Technologies postgraduate course at Universidad de la República.
 
-# Jelly BLE 🎯
-
 <div align="center">
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
