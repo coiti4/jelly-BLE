@@ -6,14 +6,46 @@
  * Facultad de Ingeniería - Universidad de la República, Uruguay
  */
 #include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/gatt.h>
 #include <zephyr/logging/log.h>
 #include <bluetooth/scan.h>
 #include "scanning.h"
 #include "connection_manager.h"
+#include "jelly_rtt_service.h"
+#include "rtt_manager.h"
 
 LOG_MODULE_REGISTER(scanning, LOG_LEVEL_INF);
 
 static uint8_t matchs_nb = 0;
+
+/* Notify handler (downward) */
+static uint8_t notify_func(struct bt_conn *conn,
+			   struct bt_gatt_subscribe_params *params,
+			   const void *data, uint16_t length)
+{
+	if (length != sizeof(jrs_pkt_t)) return;
+
+    jrs_pkt_t pkt;
+    memcpy(&pkt, data, length);
+    LOG_INF("Notify received: counter=%d", pkt.counter);
+
+    if (pkt.counter == 0) {
+        // This node has started the communication, compute RTT
+        rtt_compute_time();
+    } else {
+        // Forward downward
+        pkt.counter--;
+        struct bt_conn *child_conn = get_child_conn();
+        if (child_conn) {
+            int err = jrs_notify(child_conn, &pkt);
+            if (err) {
+                LOG_ERR("Failed to notify downward (err %d)", err);
+            } else {
+                LOG_INF("Forwarded downward: counter=%d", pkt.counter);
+            }
+        }
+    }
+}
 
 /* Callback for filter match */
 static void scan_filter_match(struct bt_scan_device_info *device_info,
@@ -35,7 +67,22 @@ static void scan_filter_match(struct bt_scan_device_info *device_info,
             if (matchs_nb == COORDINATOR_RETRY_TIMES) {
                 // IMPROVEMENT: choose the shortest+ path to the coordinator
                 matchs_nb = 0;
-                connect_to_device(device_info->recv_info->addr, device_info->conn_param); 
+                connect_to_device(device_info->recv_info->addr, device_info->conn_param);
+                
+                /* Subscribe to RTT characteristic */
+                struct bt_gatt_subscribe_params subscribe_params;
+
+                subscribe_params.notify = notify_func;
+		        subscribe_params.value = BT_GATT_CCC_NOTIFY;
+                subscribe_params.value_handle = get_jrs_value_handle();
+		        subscribe_params.ccc_handle = get_jrs_ccc_handle();
+
+                int err = bt_gatt_subscribe(get_parent_conn(), &subscribe_params);
+                if (err && err != -EALREADY) {
+                    printk("Subscribe failed (err %d)\n", err);
+                } else {
+                    printk("[SUBSCRIBED]\n");
+                }
             }
         } else {
             LOG_WRN("Unknown device found: %s (name: %s)", addr_str, filter_match->name.name);

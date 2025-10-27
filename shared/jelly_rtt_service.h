@@ -50,4 +50,8 @@ int bt_jrs_send(struct bt_conn *conn, const jrs_pkt_t *pkt);
 /** Store a local timestamp for RTT calculation */
 int jrs_store_timestamp(void);
 
-uint16_t get_jrs_pkt_handle(void);
+uint16_t get_jrs_value_handle(void);
+
+uint16_t get_jrs_ccc_handle(void);
+
+int jrs_notify(struct bt_conn *conn, const jrs_pkt_t *pkt);

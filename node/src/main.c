@@ -17,34 +17,23 @@
 #include "jelly_rtt_service.h"
 #include "button.h"
 #include "connection_manager.h"
+#include "rtt_manager.h"
 
 LOG_MODULE_REGISTER(node_main, LOG_LEVEL_INF);
 
-/* RTT callback */
-static void rtt_rx_cb(struct bt_conn *conn, const jrs_pkt_t *pkt)
+/* Write app callback */
+static void node_rx_cb(struct bt_conn *conn, const jrs_pkt_t *pkt)
 {
     struct bt_conn *parent_conn = get_parent_conn();
     if (parent_conn) {
         // Intermediate node: Increment and forward upward
         jrs_pkt_t new_pkt = { .counter = pkt->counter + 1 };
-        int err = bt_gatt_write_without_response(parent_conn, get_jrs_pkt_handle(), &new_pkt, sizeof(new_pkt), false);
+        int err = bt_gatt_write_without_response(parent_conn, get_jrs_value_handle(), &new_pkt, sizeof(new_pkt), false);
         if (err) {
             LOG_ERR("Failed to forward upward (err %d)", err);
         } else {
             LOG_INF("Forwarded upward: counter=%d", new_pkt.counter);
         }
-    } else {
-        // Coordinator: starts downward 
-        /* 
-        int 
-        if (get_child_conn()) {
-            int err = bt_jrs_send(get_child_conn(), pkt);
-            if (err) {
-                LOG_ERR("Failed to eco downward (err %d)", err);
-            } else {
-                LOG_INF("Eco downward: counter=%d", pkt->counter);
-            }
-        } */
     }
 }
 
@@ -53,7 +42,7 @@ static void button_handler(uint32_t button_state, uint32_t has_changed)
 {
     if (has_changed & USER_BUTTON) {
         // Store timestamp
-        if (jrs_store_timestamp()) {
+        if (rtt_store_timestamp()) {
             LOG_ERR("Failed to store timestamp");
             return;
         }
@@ -62,7 +51,7 @@ static void button_handler(uint32_t button_state, uint32_t has_changed)
         jrs_pkt_t pkt = { .counter = 0 };
         struct bt_conn *parent_conn = get_parent_conn();
         if (parent_conn) {
-            int err = bt_gatt_write_without_response(parent_conn, get_jrs_pkt_handle(), &pkt, sizeof(pkt), false);
+            int err = bt_gatt_write_without_response(parent_conn, get_jrs_value_handle(), &pkt, sizeof(pkt), false);
             if (err) {
                 LOG_ERR("Failed to send upward (err %d)", err);
             } else {
@@ -83,8 +72,10 @@ int main(void)
 
     register_peripheral_connection_callbacks();
 
+    rtt_manager_init();
+
     ble_init();
-    bt_jrs_init(rtt_rx_cb);
+    bt_jrs_init(node_rx_cb);
 
     register_central_connection_callbacks();
     LOG_INF("Starting node scanning...");
