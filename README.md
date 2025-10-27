@@ -22,11 +22,11 @@ Jelly BLE is a Bluetooth Low Energy network project that implements a hierarchic
 
 ---
 
-## ✨ Features
+## ⚙️ Features
 
 - 🌳 **Hierarchical Jelly Topology** - Automatic parent-child relationship management
 - 🔄 **Bidirectional Communication** - Packets flow upward and downward through the network
-- ⏱️ **RTT Measurement** - Built-in round-trip time calculation
+- ⏱️ **RTT Measurement** - Round-trip time calculation
 - 🔌 **Dual Role Nodes** - Nodes act as both central and peripheral simultaneously
 - 📡 **Multiple Connections** - Coordinator supports multiple simultaneous connections
 - 🔍 **Automatic Discovery** - Nodes automatically scan and connect to parents
