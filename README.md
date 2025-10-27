@@ -38,15 +38,7 @@ Jelly BLE is a Bluetooth Low Energy network project that implements a hierarchic
 
 ### Network Topology
 
-```
-                    [Coordinator]
-                    /     |     \
-                   /      |      \
-              [Node A] [Node B] [Node C]
-                /                 |
-               /                  |
-          [Node D]            [Node F]
-```
+![Network topology](images/jelly_topology.png)
 
 ### Device Roles
 
