@@ -1,5 +1,4 @@
 # jelly-BLE
-Repository of the IoT Technologies postgraduate course at Universidad de la República.
 
 <div align="center">
 
@@ -7,7 +6,7 @@ Repository of the IoT Technologies postgraduate course at Universidad de la Rep�
 ![Platform](https://img.shields.io/badge/platform-nRF-green.svg)
 ![Bluetooth](https://img.shields.io/badge/Bluetooth-LE%205.0+-brightgreen.svg)
 
-**A BLE Mesh Network Implementation for IoT Course**
+**A BLE Network Implementation for IoT Technologies Course**
 
 *Facultad de Ingeniería - Universidad de la República, Uruguay*
 
@@ -20,11 +19,6 @@ Repository of the IoT Technologies postgraduate course at Universidad de la Rep�
 ## 📋 Overview
 
 Jelly BLE is a Bluetooth Low Energy network project that implements a hierarchical tree topology. Nodes can automatically discover and connect to form a jelly-like network, forwarding packets bidirectionally and measuring Round-Trip Time (RTT) across the network.
-
-**Author:** Agustín Coitinho  
-**Course:** Tecnologías para la Internet de las Cosas  
-**Year:** 2025  
-**License:** MIT
 
 ---
 
