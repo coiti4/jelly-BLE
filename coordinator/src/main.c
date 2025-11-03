@@ -60,6 +60,7 @@ int main(void)
 	//ble_init_and_start_advertising();
     ble_init();
 	bt_jrs_init(coordinator_rx_cb);
+
     ble_advertising_init();
     ble_advertising_start();
 

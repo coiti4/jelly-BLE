@@ -8,13 +8,48 @@
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/logging/log.h>
 #include <dk_buttons_and_leds.h>
+#include <zephyr/bluetooth/gatt.h>
 #include "led.h"
 #include "ble_common.h"
 #include "scanning.h"
 #include "connection_manager.h"
 #include "ble_callbacks.h"
+#include "jelly_rtt_service.h"
+#include "rtt_manager.h"
+
+struct bt_gatt_subscribe_params subscribe_params;
 
 LOG_MODULE_REGISTER(ble_callbacks, LOG_LEVEL_INF);
+
+
+/* Notify handler (downward) */
+static uint8_t notify_func(struct bt_conn *conn,
+			   struct bt_gatt_subscribe_params *params,
+			   const void *data, uint16_t length)
+{
+	if (length != sizeof(jrs_pkt_t)) return;
+
+    jrs_pkt_t pkt;
+    memcpy(&pkt, data, length);
+    LOG_INF("Notify received: counter=%d", pkt.counter);
+
+    if (pkt.counter == 0) {
+        // This node has started the communication, compute RTT
+        rtt_compute_time();
+    } else {
+        // Forward downward
+        pkt.counter--;
+        struct bt_conn *child_conn = get_child_conn();
+        if (child_conn) {
+            int err = jrs_notify(child_conn, &pkt);
+            if (err) {
+                LOG_ERR("Failed to notify downward (err %d)", err);
+            } else {
+                LOG_INF("Forwarded downward: counter=%d", pkt.counter);
+            }
+        }
+    }
+}
 
 static void on_connected(struct bt_conn *conn, uint8_t err) {
     if (err) { // revisar
@@ -29,6 +64,21 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
     if (conn != get_parent_conn()) {
         set_child_conn(conn);
         dk_set_led(CONNECTED_LED, 1);
+
+    } else {
+        // parent
+        /* Subscribe to RTT characteristic */
+        subscribe_params.notify = notify_func;
+        subscribe_params.value = BT_GATT_CCC_NOTIFY;
+        subscribe_params.value_handle = get_jrs_value_handle();
+        subscribe_params.ccc_handle = get_jrs_ccc_handle();
+
+        int err = bt_gatt_subscribe(get_parent_conn(), &subscribe_params);
+        if (err && err != -EALREADY) {
+            LOG_INF("Subscribe failed (err %d)\n", err);
+        } else {
+            LOG_INF("[SUBSCRIBED]\n");
+        }
     }
     /* Stop advertising once connected */
 }
