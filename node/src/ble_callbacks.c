@@ -73,6 +73,7 @@ static uint8_t discover_func(struct bt_conn *conn,
 
 	if (!bt_uuid_cmp(discover_params.uuid, BT_UUID_JRS)) {
         LOG_INF("Found JRS service");
+        set_jrs_service_handle(attr->handle);
 		memcpy(&discover_uuid, BT_UUID_JRS_PKT, sizeof(discover_uuid));
 
 		discover_params.uuid = &discover_uuid.uuid;
@@ -85,6 +86,9 @@ static uint8_t discover_func(struct bt_conn *conn,
 		}
 	} else if (!bt_uuid_cmp(discover_params.uuid,
 				BT_UUID_JRS_PKT)) {
+        struct bt_gatt_chrc *chrc = (struct bt_gatt_chrc *)attr->user_data;
+        set_jrs_char_decl_handle(attr->handle);
+        set_jrs_value_handle(chrc->value_handle);
 		discover_params.uuid = BT_UUID_GATT_CCC;
 		discover_params.start_handle = attr->handle + 2;
 		discover_params.type = BT_GATT_DISCOVER_DESCRIPTOR;
@@ -97,6 +101,7 @@ static uint8_t discover_func(struct bt_conn *conn,
 		}
 	} else {
         /* CCC found, now subscribe */
+        set_jrs_ccc_handle(attr->handle);
 		subscribe_params.notify = notify_func;
 		subscribe_params.value = BT_GATT_CCC_NOTIFY;
 		subscribe_params.ccc_handle = attr->handle;

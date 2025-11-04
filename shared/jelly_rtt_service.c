@@ -16,6 +16,67 @@ LOG_MODULE_REGISTER(jrs, LOG_LEVEL_INF);
 /* Application callback */
 static jrs_rx_cb_t app_rx_cb;
 
+static uint16_t jrs_service_handle = 0;
+static uint16_t jrs_char_decl_handle = 0;
+static uint16_t jrs_value_handle = 0;
+static uint16_t jrs_ccc_handle = 0;
+
+/* ---------------------- SETTERS ---------------------- */
+
+void set_jrs_service_handle(uint16_t handle)
+{
+    jrs_service_handle = handle;
+}
+
+void set_jrs_char_decl_handle(uint16_t handle)
+{
+    jrs_char_decl_handle = handle;
+}
+
+void set_jrs_value_handle(uint16_t handle)
+{
+    jrs_value_handle = handle;
+}
+
+void set_jrs_ccc_handle(uint16_t handle)
+{
+    jrs_ccc_handle = handle;
+}
+
+/* ---------------------- GETTERS ---------------------- */
+
+uint16_t get_jrs_service_handle(void)
+{
+    return jrs_service_handle;
+}
+
+uint16_t get_jrs_char_decl_handle(void)
+{
+    return jrs_char_decl_handle;
+}
+
+uint16_t get_jrs_value_handle(void)
+{
+    return jrs_value_handle;
+}
+
+uint16_t get_jrs_ccc_handle(void)
+{
+    return jrs_ccc_handle;
+}
+
+void jrs_print_handle_summary(void)
+{
+    LOG_INF("╔════════════════════════════════════╗");
+    LOG_INF("║    GATT SERVER HANDLES SUMMARY     ║");
+    LOG_INF("╠════════════════════════════════════╣");
+    LOG_INF("║ Service Declaration : %5u          ║", jrs_service_handle);
+    LOG_INF("║ Char Declaration    : %5u          ║", jrs_char_decl_handle);
+    LOG_INF("║ Char Value (DATA)   : %5u          ║", jrs_value_handle);
+    LOG_INF("║ CCC Descriptor      : %5u          ║", jrs_ccc_handle);
+    LOG_INF("╚════════════════════════════════════╝");
+}
+
 /* ----------------------------------------------------------------------
  * Characteristic write handler (upward)
  * --------------------------------------------------------------------*/
@@ -84,16 +145,6 @@ int bt_jrs_send(struct bt_conn *conn, const jrs_pkt_t *pkt)
         LOG_INF("Coordinator sent notification: counter=%d to conn %p", pkt->counter, (void *)conn);
     }
     return err;
-}
-
-uint16_t get_jrs_value_handle(void)
-{
-    return jrs_svc.attrs[2].handle;
-}
-
-uint16_t get_jrs_ccc_handle(void)
-{
-    return jrs_svc.attrs[3].handle;
 }
 
 int jrs_notify(struct bt_conn *conn, const jrs_pkt_t *pkt)

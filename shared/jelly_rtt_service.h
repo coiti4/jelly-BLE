@@ -50,8 +50,68 @@ int bt_jrs_send(struct bt_conn *conn, const jrs_pkt_t *pkt);
 /** Store a local timestamp for RTT calculation */
 int jrs_store_timestamp(void);
 
+/**
+ * @brief Set the handle of the Jelly RTT Service declaration.
+ *
+ * @param handle GATT handle of the service declaration.
+ */
+void set_jrs_service_handle(uint16_t handle);
+
+/**
+ * @brief Get the handle of the Jelly RTT Service declaration.
+ *
+ * @return uint16_t GATT handle of the service declaration.
+ */
+uint16_t get_jrs_service_handle(void);
+
+/**
+ * @brief Set the handle of the JRS characteristic declaration.
+ *
+ * @param handle GATT handle of the characteristic declaration.
+ */
+void set_jrs_char_decl_handle(uint16_t handle);
+
+/**
+ * @brief Get the handle of the JRS characteristic declaration.
+ *
+ * @return uint16_t GATT handle of the characteristic declaration.
+ */
+uint16_t get_jrs_char_decl_handle(void);
+
+/**
+ * @brief Set the handle of the JRS characteristic value.
+ *
+ * @param handle GATT handle of the characteristic value.
+ */
+void set_jrs_value_handle(uint16_t handle);
+
+/**
+ * @brief Get the handle of the JRS characteristic value.
+ *
+ * @return uint16_t GATT handle of the characteristic value.
+ */
 uint16_t get_jrs_value_handle(void);
 
+/**
+ * @brief Set the handle of the JRS Client Characteristic Configuration (CCC).
+ *
+ * @param handle GATT handle of the CCC descriptor.
+ */
+void set_jrs_ccc_handle(uint16_t handle);
+
+/**
+ * @brief Get the handle of the JRS Client Characteristic Configuration (CCC).
+ *
+ * @return uint16_t GATT handle of the CCC descriptor.
+ */
 uint16_t get_jrs_ccc_handle(void);
+
+/**
+ * @brief Print a formatted summary of all JRS handles.
+ *
+ * This is mainly for debugging and verification after discovery or service registration.
+ */
+void jrs_print_handle_summary(void);
+
 
 int jrs_notify(struct bt_conn *conn, const jrs_pkt_t *pkt);
