@@ -17,6 +17,8 @@
 #include "jelly_rtt_service.h"
 #include "rtt_manager.h"
 
+static struct bt_uuid_128 discover_uuid = BT_UUID_INIT_128(0);
+static struct bt_gatt_discover_params discover_params;
 struct bt_gatt_subscribe_params subscribe_params;
 
 LOG_MODULE_REGISTER(ble_callbacks, LOG_LEVEL_INF);
@@ -27,7 +29,9 @@ static uint8_t notify_func(struct bt_conn *conn,
 			   struct bt_gatt_subscribe_params *params,
 			   const void *data, uint16_t length)
 {
-	if (length != sizeof(jrs_pkt_t)) return;
+	if (length != sizeof(jrs_pkt_t)) {
+        return BT_GATT_ITER_STOP;
+    }
 
     jrs_pkt_t pkt;
     memcpy(&pkt, data, length);
@@ -49,6 +53,65 @@ static uint8_t notify_func(struct bt_conn *conn,
             }
         }
     }
+
+    return BT_GATT_ITER_CONTINUE;
+}
+
+static uint8_t discover_func(struct bt_conn *conn,
+			     const struct bt_gatt_attr *attr,
+			     struct bt_gatt_discover_params *params)
+{
+	int err;
+
+	if (!attr) {
+		LOG_INF("Discover complete");
+		(void)memset(params, 0, sizeof(*params));
+		return BT_GATT_ITER_STOP;
+	}
+
+	LOG_INF("[ATTRIBUTE] handle %u", attr->handle);
+
+	if (!bt_uuid_cmp(discover_params.uuid, BT_UUID_JRS)) {
+        LOG_INF("Found JRS service");
+		memcpy(&discover_uuid, BT_UUID_JRS_PKT, sizeof(discover_uuid));
+
+		discover_params.uuid = &discover_uuid.uuid;
+		discover_params.start_handle = attr->handle + 1;
+		discover_params.type = BT_GATT_DISCOVER_CHARACTERISTIC;
+
+		err = bt_gatt_discover(conn, &discover_params);
+		if (err) {
+			LOG_INF("Discover failed (err %d)", err);
+		}
+	} else if (!bt_uuid_cmp(discover_params.uuid,
+				BT_UUID_JRS_PKT)) {
+		discover_params.uuid = BT_UUID_GATT_CCC;
+		discover_params.start_handle = attr->handle + 2;
+		discover_params.type = BT_GATT_DISCOVER_DESCRIPTOR;
+
+		subscribe_params.value_handle = bt_gatt_attr_value_handle(attr);
+
+		err = bt_gatt_discover(conn, &discover_params);
+		if (err) {
+			LOG_INF("Discover failed (err %d)", err);
+		}
+	} else {
+        /* CCC found, now subscribe */
+		subscribe_params.notify = notify_func;
+		subscribe_params.value = BT_GATT_CCC_NOTIFY;
+		subscribe_params.ccc_handle = attr->handle;
+
+		err = bt_gatt_subscribe(conn, &subscribe_params);
+		if (err && err != -EALREADY) {
+			LOG_INF("Subscribe failed (err %d)", err);
+		} else {
+			LOG_INF("[SUBSCRIBED]");
+		}
+
+		return BT_GATT_ITER_STOP;
+	}
+
+	return BT_GATT_ITER_STOP;
 }
 
 static void on_connected(struct bt_conn *conn, uint8_t err) {
@@ -67,20 +130,19 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 
     } else {
         // parent
-        /* Subscribe to RTT characteristic */
-        subscribe_params.notify = notify_func;
-        subscribe_params.value = BT_GATT_CCC_NOTIFY;
-        subscribe_params.value_handle = get_jrs_value_handle();
-        subscribe_params.ccc_handle = get_jrs_ccc_handle();
+        memcpy(&discover_uuid, BT_UUID_JRS, sizeof(discover_uuid));
+		discover_params.uuid = &discover_uuid.uuid;
+		discover_params.func = discover_func;
+		discover_params.start_handle = BT_ATT_FIRST_ATTRIBUTE_HANDLE;
+		discover_params.end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
+		discover_params.type = BT_GATT_DISCOVER_PRIMARY;
 
-        int err = bt_gatt_subscribe(get_parent_conn(), &subscribe_params);
-        if (err && err != -EALREADY) {
-            LOG_INF("Subscribe failed (err %d)\n", err);
-        } else {
-            LOG_INF("[SUBSCRIBED]\n");
-        }
+		err = bt_gatt_discover(get_parent_conn(), &discover_params);
+		if (err) {
+			LOG_INF("Discover failed(err %d)", err);
+			return;
+		}
     }
-    /* Stop advertising once connected */
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason) {

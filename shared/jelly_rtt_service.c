@@ -47,9 +47,9 @@ static ssize_t write_pkt(struct bt_conn *conn,
 static void jrs_subscription(const struct bt_gatt_attr *attr, uint16_t value)
 {
     if (value == BT_GATT_CCC_NOTIFY) {
-        LOG_INF("Client subscribed\n");
+        LOG_INF("Client subscribed");
     } else if (value == 0) {
-        LOG_INF("Client unsubscribed\n");
+        LOG_INF("Client unsubscribed");
     }
 }
 
