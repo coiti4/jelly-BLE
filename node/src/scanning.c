@@ -13,6 +13,7 @@
 #include "connection_manager.h"
 #include "jelly_rtt_service.h"
 #include "rtt_manager.h"
+#include "power_debug.h"
 
 LOG_MODULE_REGISTER(scanning, LOG_LEVEL_INF);
 
@@ -58,6 +59,9 @@ static void scan_filter_no_match(struct bt_scan_device_info *device_info,
 static void scan_connecting_error(struct bt_scan_device_info *device_info)
 {
     LOG_ERR("Connection failed");
+    /* MEASUREMENT: Connection failed, return to scanning */
+    power_debug_end(DBG_CONNECTING);
+    power_debug_start(DBG_SCANNING);
     /* Restart scanning */
     bt_scan_start(BT_SCAN_TYPE_SCAN_PASSIVE);
 }
@@ -113,10 +117,14 @@ int start_scanning(void)
         return err;
     }
 
+    /* MEASUREMENT: Scanning - P1.00 HIGH during scanning */
+    power_debug_start(DBG_SCANNING);
+
     /* Start scanning */
     err = bt_scan_start(BT_SCAN_TYPE_SCAN_PASSIVE);
     if (err) {
         LOG_ERR("Failed to start scanning (err %d)", err);
+        power_debug_end(DBG_SCANNING);
         return err;
     }
 
@@ -129,16 +137,23 @@ void connect_to_device(const bt_addr_le_t *addr, const struct bt_le_conn_param *
     int err;
     struct bt_conn *conn = NULL;
 
+    /* MEASUREMENT: Connecting to parent - Transition from scanning to connecting */
+    power_debug_end(DBG_SCANNING);  /* End of scanning */
+    power_debug_start(DBG_CONNECTING);  /* Start of connecting */
+
     bt_scan_stop();
     err = bt_conn_le_create(addr, BT_CONN_LE_CREATE_CONN, conn_param, &conn);
     if (err) {
         LOG_ERR("Failed to create connection (err %d)", err);
+        power_debug_end(DBG_CONNECTING);
         /* Restart scanning on failure */
+        power_debug_start(DBG_SCANNING);
         bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
     } else {
         LOG_INF("Connection initiated");
         /* Update parent connection */
         set_parent_conn(conn);
         bt_conn_unref(conn);
+        /* CONNECTING state ends in on_connected callback */
     }
 }

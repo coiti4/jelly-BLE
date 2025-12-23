@@ -16,6 +16,7 @@
 #include "ble_callbacks.h"
 #include "jelly_rtt_service.h"
 #include "rtt_manager.h"
+#include "power_debug.h"
 
 static struct bt_uuid_128 discover_uuid = BT_UUID_INIT_128(0);
 static struct bt_gatt_discover_params discover_params;
@@ -33,6 +34,9 @@ static uint8_t notify_func(struct bt_conn *conn,
         return BT_GATT_ITER_STOP;
     }
 
+    /* MEASUREMENT: Receive message from parent */
+    power_debug_pulse(1);  /* Short pulse on P1.01 for RX */
+
     jrs_pkt_t pkt;
     memcpy(&pkt, data, length);
     LOG_INF("Notify received: counter=%d", pkt.counter);
@@ -41,6 +45,9 @@ static uint8_t notify_func(struct bt_conn *conn,
         // This node has started the communication, compute RTT
         rtt_compute_time();
     } else {
+        /* MEASUREMENT: Forward message downward (to child) */
+        power_debug_start(DBG_FORWARD);
+
         // Forward downward
         pkt.counter--;
         struct bt_conn *child_conn = get_child_conn();
@@ -52,6 +59,8 @@ static uint8_t notify_func(struct bt_conn *conn,
                 LOG_INF("Forwarded downward: counter=%d", pkt.counter);
             }
         }
+
+        power_debug_end(DBG_FORWARD);
     }
 
     return BT_GATT_ITER_CONTINUE;
@@ -130,10 +139,20 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 		return;
 	}
     if (conn != get_parent_conn()) {
+        /* MEASUREMENT: Connecting to child - End of connection process */
+        power_debug_pulse(0);  /* Pulse on P1.00 to mark child connection event */
+
         set_child_conn(conn);
         dk_set_led(CONNECTED_LED, 1);
 
+        /* MEASUREMENT: Idle without advertising - P1.02 LOW when child connected */
+        power_debug_clear(2);
+
     } else {
+        /* MEASUREMENT: Connected to parent - End of connection process */
+        power_debug_end(DBG_CONNECTING);
+        power_debug_set(1);  /* P1.01 HIGH = connected to parent */
+
         // parent
         memcpy(&discover_uuid, BT_UUID_JRS, sizeof(discover_uuid));
 		discover_params.uuid = &discover_uuid.uuid;
@@ -156,6 +175,10 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
     if (conn == get_parent_conn()) {
         LOG_INF("Parent disconnected");
         set_parent_conn(NULL);
+
+        /* MEASUREMENT: Disconnected from parent, return to scanning */
+        power_debug_clear(1);  /* P1.01 LOW = not connected */
+
         /* Restart scanning */
         err = start_scanning();
         if (err) {
@@ -165,6 +188,10 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
         set_child_conn(NULL);
         dk_set_led(CONNECTED_LED, 0);
         LOG_INF("Child disconnected");
+
+        /* MEASUREMENT: Disconnected from child, return to advertising */
+        power_debug_set(2);  /* P1.02 HIGH = advertising active */
+
         /* Restart advertising */
         ble_advertising_start();
     } else {

@@ -11,6 +11,7 @@
 #include "led.h"
 #include "ble_common.h"
 #include "ble_callbacks.h"
+#include "power_debug.h"
 
 LOG_MODULE_REGISTER(ble_callbacks, LOG_LEVEL_INF);
 
@@ -34,10 +35,17 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 		return;
 	}
 
+    /* MEASUREMENT: Connecting N - Pulse when connection completes */
+    power_debug_pulse(0);  /* Pulse on P1.00 to mark connection event */
+
 	if (active_connections < MAX_CONN) {
-        conns[active_connections++] = bt_conn_ref(conn);  // guardar referencia
+        conns[active_connections++] = bt_conn_ref(conn);  // save reference
         LOG_INF("Connected");
 	    dk_set_led(active_connections, 1);
+
+        /* MEASUREMENT: Idle/steady state with N connections - Set P1.01 based on connection count */
+        /* Bit pattern on P1.01 indicates number of active connections */
+        power_debug_set(1);  /* P1.01 HIGH = connected state */
     } else {
         LOG_WRN("Too many connections already established!");
     }
@@ -53,6 +61,11 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 	double connection_interval = info.le.interval*1.25; // in ms
 	uint16_t supervision_timeout = info.le.timeout*10; // in ms
 	LOG_INF("Connection parameters: interval %.2f ms, latency %d intervals, timeout %d ms", connection_interval, info.le.latency, supervision_timeout);
+
+    /* MEASUREMENT: If we reach MAX_CONN, advertising stops (P1.02 LOW) */
+    if (active_connections >= MAX_CONN) {
+        power_debug_clear(2);  /* P1.02 LOW = no advertising */
+    }
 
     restart_advertising_if_needed();
 	//ble_advertising_start();
@@ -71,7 +84,15 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason) {
             bt_conn_unref(conns[i]);
             conns[i] = NULL;
             dk_set_led(active_connections--, 0);
+
+            /* MEASUREMENT: If no connections, clear P1.01 */
+            if (active_connections == 0) {
+                power_debug_clear(1);
+            }
+
+            /* MEASUREMENT: If we return to advertise after being full, set P1.02 */
             if (active_connections == MAX_CONN - 1) {
+                power_debug_set(2);  /* P1.02 HIGH = advertising active */
                 restart_advertising_if_needed();
             }
             break;
